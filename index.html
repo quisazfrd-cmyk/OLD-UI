@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>OLD UI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('Service Worker registered!', reg))
+          .catch((err) => console.log('Service Worker registration failed', err));
+      });
+    }
+  </script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      position: fixed;
+      background-color: #000000;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* PAGE 1: EDITOR PAGE */
+    #editor-page {
+      width: 90%;
+      max-width: 380px;
+      padding: 16px 16px;
+      background-color: #121212;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .editor-header-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      margin-bottom: 2px;
+    }
+
+    .editor-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: linear-gradient(45deg, #0095f6, #ff2d55);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+    }
+
+    .editor-subtitle {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: #a8a8a8;
+      font-weight: 500;
+    }
+
+    .editor-subtitle svg {
+      width: 13px;
+      height: 13px;
+      fill: #0088cc;
+    }
+
+    #editor-page h2 {
+      display: none;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-size: 11px;
+      color: #a8a8a8;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input[type="text"], 
+    .form-group textarea {
+      background-color: #1c1c1e;
+      border: 1px solid #2c2c2e;
+      border-radius: 6px;
+      color: #fff;
+      padding: 8px 10px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .form-group textarea {
+      resize: none;
+      height: 44px;
+    }
+
+    .form-group input[type="file"] {
+      background-color: #1c1c1e;
+      border: 1px dashed #3a3a3c;
+      border-radius: 6px;
+      color: #a8a8a8;
+      padding: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn {
+      background-color: #0095f6;
+      color: white;
+      border: none;
+      padding: 11px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    /* PAGE 2: FULLSCREEN MOCKUP */
+    #result-page {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      max-width: 430px;
+      background-color: #000000;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      flex-direction: column;
+      overflow: hidden;
+      touch-action: pan-y;
+    }
+
+    /* Navigation Header */
+    .nav-header {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      margin-top: 2px;
+      position: relative;
+      z-index: 10;
+      background-color: #000000;
+    }
+
+    .nav-header .username {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+
+    .icon-btn {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+    }
+
+    /* PULL TO REFRESH CONTAINER & SPINNER */
+    .ptr-container {
+      width: 100%;
+      height: 0px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      overflow: visible;
+      position: absolute;
+      top: 48px;
+      left: 0;
+      z-index: 2;
+      pointer-events: none;
+      will-change: height;
+    }
+
+    .ios-spinner {
+      width: 28px;
+      height: 28px;
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      margin-left: -14px;
+      transform-origin: 50% 50%;
+      will-change: transform, opacity;
+      overflow: visible;
+      opacity: 0;
+    }
+
+    .spinner-master-group {
+      transform-origin: 15px 15px;
+      will-change: transform;
+      transform: rotate(0deg);
+    }
+
+    .spinner-blade {
+      opacity: 0.10;
+      transition: opacity 0.05s linear;
+    }
+
+    /* Profile Body Wrapper */
+    .profile-body-wrapper {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      width: 100%;
+      will-change: transform;
+    }
+
+    /* Profile Info Grid */
+    .profile-info {
+      display: flex;
+      align-items: center;
+      padding: 4px 16px 4px 16px;
+      justify-content: space-between;
+    }
+
+    .pfp-container {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      overflow: hidden;
+      background-color: #000000;
+      border: 1px solid #1a1a1a;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-block: 0.2rem;
+    }
+
+    .pfp-avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .right-stats-wrapper {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      margin-left: 55px;
+      gap: 5px;
+    }
+
+    .stats-container {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-number {
+      font-size: 15px;
+      font-weight: 550;
+      letter-spacing: -0.1px;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: #ffffff;
+      font-weight: 400;
+      margin-top: 1px;
+    }
+
+    /* Follow Status Pill Container */
+    .follow-status-pill {
+      width: calc(100% - 24px);
+      margin-left: auto;
+      margin-right: auto;
+      height: 23px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s ease;
+    }
+
+    .follow-status-pill.not-following {
+      background-color: #a20000;
+      color: #ffffff;
+    }
+
+    .follow-status-pill.following-you {
+      background-color: #248a3d;
+      color: #ffffff;
+    }
+
+    /* Bio Section */
+    .bio-section {
+      padding: 0 16px;
+      font-size: 13px;
+      line-height: 18px;
+    }
+
+    .display-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 2px;
+    }
+
+    .bio-text {
+      color: #ffffff;
+      white-space: pre-line;
+      word-break: break-word;
+    }
+
+    .followed-by {
+      color: #a8a8a8;
+      margin-top: 6px;
+      font-size: 12.5px;
+      display: none;
+    }
+
+    .followed-by strong {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    /* Action Buttons Container */
+    .button-container {
+      display: flex;
+      gap: 6px;
+      padding: 8px 16px 8px 16px;
+      width: 100%;
+    }
+
+    .btn-action {
+      height: 36px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      flex: 1;
+    }
+
+    .btn-follow {
+      background-color: #0095f6;
+      color: #ffffff;
+      border: none;
+    }
+
+    .btn-follow.user-not-found {
+      background-color: #000000;
+      color: #ffffff;
+      border: 1px solid #343434;
+    }
+
+    .btn-follow.following {
+      background-color: #000000;
+      color: #ffffff;
+      border: 1px solid #262626;
+    }
+
+    .btn-message {
+      background-color: #000000;
+      color: #ffffff;
+      border: 1px solid #262626;
+    }
+
+    /* Tab Navigation */
+    .tabs-bar {
+      display: flex;
+      border-bottom: 1px solid #1c1c1c;
+      height: 48px;
+      margin-top: 6px;
+    }
+
+    .tab-item {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid transparent;
+      cursor: pointer;
+    }
+
+    .tab-item.active {
+      border-bottom: 1px solid #ffffff;
+    }
+
+    /* Empty Content Area */
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 60px;
+    }
+
+    .no-posts-text {
+      font-size: 22px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.2px;
+      margin-top: 16px;
+    }
+
+    /* OPTIONS POPUP OVERLAY */
+    .modal-overlay {
+      display: flex;
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.65);
+      z-index: 100;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 10px 20px 20px 20px;
+      transition: visibility 0.25s ease, opacity 0.25s ease;
+    }
+
+    .modal-overlay.active {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .popup-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+    }
+
+    .modal-overlay.active .popup-container {
+      transform: translateY(0);
+    }
+
+    .popup-card {
+      background-color: #262626;
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .popup-item {
+      height: 57px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 500;
+      color: #ffffff;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.12s ease;
+    }
+
+    .popup-item:last-child {
+      border-bottom: none;
+    }
+
+    .popup-item.danger {
+      color: rgba(255, 24, 36);
+      font-weight: 600;
+    }
+
+    .popup-item:hover {
+      background-color: #38383a;
+    }
+
+    .popup-item:active {
+      background-color: #48484a;
+    }
+
+    .popup-cancel-card {
+      background-color: #262626;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .popup-cancel-btn {
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #ffffff;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.12s ease;
+    }
+
+    .popup-cancel-btn:hover {
+      background-color: #38383a;
+    }
+
+    .popup-cancel-btn:active {
+      background-color: #48484a;
+    }
+
+    /* BOTTOM SHEET MODAL STYLING */
+    .sheet-overlay {
+      display: flex;
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 200;
+      flex-direction: column;
+      justify-content: flex-end;
+      transition: visibility 0.25s ease, opacity 0.25s ease;
+    }
+
+    .sheet-overlay.active {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .bottom-sheet {
+      width: 100%;
+      height: 72%;
+      background-color: #262626;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+      touch-action: none;
+    }
+
+    .sheet-overlay.active .bottom-sheet {
+      transform: translateY(0);
+    }
+
+    .sheet-drag-header {
+      width: 100%;
+      padding-top: 10px;
+      padding-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .sheet-drag-pill {
+      width: 36px;
+      height: 4px;
+      background-color: #48484a;
+      border-radius: 2px;
+      margin-bottom: 12px;
+    }
+
+    .sheet-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .sheet-body {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .sheet-main-heading {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .sheet-subtext {
+      font-size: 12px;
+      color: #a8a8a8;
+      line-height: 16px;
+      margin-bottom: 24px;
+    }
+
+    .sheet-option-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sheet-option-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      font-size: 14px;
+      font-weight: 500;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.12s ease;
+    }
+
+    .sheet-option-item:hover, .sheet-option-item:active {
+      opacity: 0.7;
+    }
+
+    .sheet-option-item svg {
+      opacity: 0.4;
+    }
+
+    /* ABOUT ACCOUNT SPECIFIC STYLING */
+    .about-header-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .about-pfp {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      margin-bottom: 12px;
+      object-fit: cover;
+    }
+
+    .about-username {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .about-desc {
+      font-size: 12px;
+      color: #a8a8a8;
+      max-width: 280px;
+      line-height: 16px;
+    }
+
+    .about-detail-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .about-detail-icon {
+      margin-top: 2px;
+    }
+
+    .about-detail-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .about-detail-title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .about-detail-sub {
+      font-size: 12px;
+      color: #a8a8a8;
+    }
+
+    .blank-content-msg {
+      display: flex;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    /* DYNAMIC DARK POPUP-MATCHED TOAST NOTIFICATION */
+    .toast-notification {
+      position: absolute;
+      bottom: -60px;
+      left: 12px;
+      right: 12px;
+      height: 50px;
+      background-color: #262626;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 12px;
+      z-index: 300;
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s ease;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+    }
+
+    .toast-notification.show {
+      transform: translateY(-82px);
+    }
+
+    .toast-icon {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .toast-icon-green {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .toast-text {
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: -0.1px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="editor-page">
+    <div class="editor-header-box">
+      <div class="editor-title">old ui mockup 👽</div>
+      <div class="editor-subtitle">
+        made by @mx4xi 
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.26-2.06-.48-.83-.27-1.49-.42-1.43-.89.03-.25.38-.51 1.06-.78 4.15-1.81 6.91-3.01 8.28-3.61 3.94-1.68 4.76-1.97 5.29-1.98.12 0 .39.03.56.17.15.12.19.28.21.4-.02.06.02.24 0 .38z"/></svg>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Select Profile Picture</label>
+      <input type="file" id="input-pfp-file" accept="image/*">
+    </div>
+
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="input-username" value="devil81x">
+    </div>
+
+    <div class="form-group">
+      <label>Display Name</label>
+      <input type="text" id="input-name" value="DEVIL">
+    </div>
+
+    <div class="form-group">
+      <label>Posts</label>
+      <input type="text" id="input-posts" value="0">
+    </div>
+
+    <div class="form-group">
+      <label>Followers</label>
+      <input type="text" id="input-followers" value="9,966">
+    </div>
+
+    <div class="form-group">
+      <label>Following</label>
+      <input type="text" id="input-following" value="33">
+    </div>
+
+    <div class="form-group">
+      <label>Bio</label>
+      <textarea id="input-bio" rows="2">If you leave me I'll be broken inside !</textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Followed By Text (Leave empty to hide)</label>
+      <input type="text" id="input-followed" value="k9mato, q.dripx and 5 others">
+    </div>
+
+    <button class="btn" onclick="generateProfile()">Generate Full View</button>
+  </div>
+
+  <div id="result-page">
+
+    <div class="nav-header">
+      <div class="icon-btn" onclick="showEditor()">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 19l-7-7 7-7" />
+        </svg>
+      </div>
+      
+      <div class="username" id="display-username">devil81x</div>
+
+      <div class="icon-btn" onclick="openPopup()">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#ffffff">
+          <circle cx="4" cy="12" r="1.8"/>
+          <circle cx="12" cy="12" r="1.8"/>
+          <circle cx="20" cy="12" r="1.8"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- PULL TO REFRESH SPINNER BELOW USERNAME HEADER -->
+    <div class="ptr-container" id="ptr-container">
+      <svg class="ios-spinner" id="ios-spinner" viewBox="0 0 30 30" aria-hidden="true">
+        <defs>
+          <rect id="thick-blade" x="13.4" y="0.8" width="3.2" height="9.5" rx="1.6" ry="1.6"/>
+        </defs>
+        <g class="spinner-master-group" id="spinner-master-group" fill="#FFFFFF">
+          <use href="#thick-blade" class="spinner-blade" transform="rotate(0 15 15)" />
+          <use href="#thick-blade" class="spinner-blade" transform="rotate(45 15 15)" />
+          <use href="#thick-blade" class="spinner-blade" transform="rotate(90 15 15)" />
+          <use href="#thick-blade" class="spinner-blade" transform="rotate(135 15 15)" />
+          <use href="#thick-blade" class="spinner-blade" transform="rotate(180 15 15)" />
+          <use href="#thick-blade" class="spinner-blade" transform="rotate(225 15 15)" />
+          <use href="#thick-blade" class="spinner-blade" transform="rotate(270 15 15)" />
+          <use href="#thick-blade" class="spinner-blade" transform="rotate(315 15 15)" />
+        </g>
+      </svg>
+    </div>
+
+    <div class="profile-body-wrapper" id="profile-body-wrapper">
+      <div class="profile-info">
+        <div class="pfp-container">
+          <img id="display-pfp" class="pfp-avatar" src="" alt="">
+        </div>
+
+        <div class="right-stats-wrapper">
+          <div class="stats-container">
+            <div class="stat-box">
+              <span class="stat-number" id="display-posts">0</span>
+              <span class="stat-label">Posts</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-number" id="display-followers">9,966</span>
+              <span class="stat-label">Followers</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-number" id="display-following">33</span>
+              <span class="stat-label">Following</span>
+            </div>
+          </div>
+          
+          <div class="follow-status-pill not-following" id="follow-status-pill" onclick="toggleFollowStatus()">
+            Not Following You
+          </div>
+        </div>
+      </div>
+
+      <div class="bio-section">
+        <div class="display-name" id="display-name">DEVIL</div>
+        <div class="bio-text" id="display-bio">If you leave me I'll be broken inside !</div>
+        <div class="followed-by" id="display-followed-wrapper">Followed by <strong id="display-followed"></strong></div>
+      </div>
+
+      <div class="button-container">
+        <div class="btn-action btn-follow" id="follow-btn" onclick="toggleFollow()">Follow</div>
+        <div class="btn-action btn-message">Message</div>
+      </div>
+
+      <div class="tabs-bar">
+        <div class="tab-item active">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="square">
+            <rect x="3" y="3" width="18" height="18" rx="1"/>
+            <line x1="9" y1="3" x2="9" y2="21"/>
+            <line x1="15" y1="3" x2="15" y2="21"/>
+            <line x1="3" y1="9" x2="21" y2="9"/>
+            <line x1="3" y1="15" x2="21" y2="15"/>
+          </svg>
+        </div>
+        <div class="tab-item">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30">
+            <g fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M 20,13 L 24,9 L 28,13 H 35 A 6,6 0 0 1 41,19 V 39 A 6,6 0 0 1 35,45 H 13 A 6,6 0 0 1 7,39 V 19 A 6,6 0 0 1 13,13 Z" />
+              <circle cx="24" cy="23" r="4" />
+              <path d="M 13.5,45 V 38 A 4.5,4.5 0 0 1 18,33.5 H 30 A 4.5,4.5 0 0 1 34.5,38 V 45" />
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="140" height="140">
+          <g fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="50" cy="50" r="38.5" />
+            <path d="M 44.5,33.5 H 55.5 a 3.5,3.5 0 0 1 3,1.8 l 2.2,3.8 a 3.5,3.5 0 0 0 3,1.8 H 66.5 A 6,6 0 0 1 72.5,46.9 V 61.5 A 6,6 0 0 1 66.5,67.5 H 33.5 A 6,6 0 0 1 27.5,61.5 V 46.9 A 6,6 0 0 1 33.5,40.9 h 2.8 a 3.5,3.5 0 0 0 3,-1.8 l 2.2,-3.8 a 3.5,3.5 0 0 1 3,-1.8 Z" />
+            <circle cx="50" cy="54.2" r="9.2" />
+          </g>
+        </svg>
+        <div class="no-posts-text">No Posts Yet</div>
+      </div>
+    </div>
+
+    <!-- OPTIONS POPUP OVERLAY -->
+    <div class="modal-overlay" id="options-modal" onclick="closePopup(event)">
+      <div class="popup-container">
+        <div class="popup-card">
+          <div class="popup-item danger">Restrict</div>
+          <div class="popup-item danger">Block</div>
+          <div class="popup-item danger" onclick="openReportSheet()">Report</div>
+          <div class="popup-item" onclick="openAboutSheet()">About this Account</div>
+          <div class="popup-item">Hide your story</div>
+          <div class="popup-item">Copy Profile URL</div>
+          <div class="popup-item">Share This Profile</div>
+          <div class="popup-item">QR code</div>
+        </div>
+        <div class="popup-cancel-card">
+          <div class="popup-cancel-btn" onclick="hidePopup()">Cancel</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DYNAMIC REPORT BOTTOM SHEET -->
+    <div class="sheet-overlay" id="report-sheet-modal" onclick="closeReportSheet(event)">
+      <div class="bottom-sheet" id="report-sheet">
+        <div class="sheet-drag-header" id="report-drag-header">
+          <div class="sheet-drag-pill"></div>
+          <div class="sheet-title">Report</div>
+        </div>
+        
+        <div class="sheet-body" id="report-options-view">
+          <div class="sheet-main-heading">What do you want to report?</div>
+          <div class="sheet-subtext">Your report is anonymous. If someone is in immediate danger, call the local emergency services – don't wait.</div>
+          <div class="sheet-option-list">
+            <div class="sheet-option-item" onclick="triggerSpamReport()">
+              <span>It’s spam.</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+            <div class="sheet-option-item" onclick="triggerInappropriateReport()">
+              <span>It’s inappropriate on instagram.</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="sheet-body" id="report-blank-view" style="display: none;">
+          <div class="sheet-subtext" style="font-size: 13px; line-height: 17px; margin-top: 4px;">
+            Your report is anonymous, except if you're reporting an intellectual property infringement. If someone is in immediate danger, call the local emergency services – don't wait.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DYNAMIC ABOUT THIS ACCOUNT BOTTOM SHEET -->
+    <div class="sheet-overlay" id="about-sheet-modal" onclick="closeAboutSheet(event)">
+      <div class="bottom-sheet" id="about-sheet">
+        <div class="sheet-drag-header" id="about-drag-header">
+          <div class="sheet-drag-pill"></div>
+          <div class="sheet-title">About this Account</div>
+        </div>
+        <div class="sheet-body" id="about-sheet-body">
+          <div class="about-header-info">
+            <img id="about-pfp-display" class="about-pfp" src="" alt="">
+            <div class="about-username" id="about-username-display">devil81x</div>
+            <div class="about-desc">To help keep our community authentic, we show information about accounts on Instagram.</div>
+          </div>
+          
+          <div class="about-detail-row">
+            <div class="about-detail-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </div>
+            <div class="about-detail-content">
+              <div class="about-detail-title">Date joined</div>
+              <div class="about-detail-sub">September 2021</div>
+            </div>
+          </div>
+
+          <div class="about-detail-row">
+            <div class="about-detail-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div class="about-detail-content">
+              <div class="about-detail-title">Account location</div>
+              <div class="about-detail-sub">Not shared</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DYNAMIC TOAST NOTIFICATION -->
+    <div class="toast-notification" id="dark-toast">
+      <span id="toast-icon-wrapper" style="display: flex; align-items: center;">
+        <svg class="toast-icon" viewBox="0 0 32 32" fill="none" stroke="#ffffff" stroke-width="2">
+          <circle cx="16" cy="16" r="13"/>
+          <line x1="16" y1="9" x2="16" y2="17"/>
+          <line x1="16" y1="21.5" x2="16.01" y2="21.5"/>
+        </svg>
+      </span>
+      <span class="toast-text" id="toast-text-msg">User not found</span>
+    </div>
+
+  </div>
+
+  <script>
+    let pfpDataUrl = '';
+    let isInappropriateReportedLocked = false;
+    let toastInterval = null;
+
+    document.getElementById('input-pfp-file').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          pfpDataUrl = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function generateProfile() {
+      if (pfpDataUrl) {
+        document.getElementById('display-pfp').src = pfpDataUrl;
+        document.getElementById('about-pfp-display').src = pfpDataUrl;
+      }
+      
+      const userVal = document.getElementById('input-username').value;
+      document.getElementById('display-username').innerText = userVal;
+      document.getElementById('about-username-display').innerText = userVal;
+      
+      const nameVal = document.getElementById('input-name').value;
+      const nameElem = document.getElementById('display-name');
+      if (nameVal.trim() !== '') {
+        nameElem.innerText = nameVal;
+        nameElem.style.display = 'block';
+      } else {
+        nameElem.style.display = 'none';
+      }
+
+      document.getElementById('display-posts').innerText = document.getElementById('input-posts').value;
+      document.getElementById('display-followers').innerText = document.getElementById('input-followers').value;
+      document.getElementById('display-following').innerText = document.getElementById('input-following').value;
+      document.getElementById('display-bio').innerText = document.getElementById('input-bio').value;
+
+      const followedVal = document.getElementById('input-followed').value;
+      const followedWrapper = document.getElementById('display-followed-wrapper');
+      const followedElem = document.getElementById('display-followed');
+      
+      if (followedVal.trim() !== '') {
+        followedElem.innerText = followedVal;
+        followedWrapper.style.display = 'block';
+      } else {
+        followedWrapper.style.display = 'none';
+      }
+
+      document.getElementById('editor-page').style.display = 'none';
+      document.getElementById('result-page').style.display = 'flex';
+    }
+
+    function showEditor() {
+      document.getElementById('result-page').style.display = 'none';
+      document.getElementById('editor-page').style.display = 'flex';
+    }
+
+    function toggleFollow() {
+      const btn = document.getElementById('follow-btn');
+      if (btn.classList.contains('user-not-found')) return;
+
+      if (btn.classList.contains('following')) {
+        btn.classList.remove('following');
+        btn.innerText = 'Follow';
+      } else {
+        btn.classList.add('following');
+        btn.innerText = 'Following';
+      }
+    }
+
+    function toggleFollowStatus() {
+      const statusPill = document.getElementById('follow-status-pill');
+      if (statusPill.classList.contains('not-following')) {
+        statusPill.classList.remove('not-following');
+        statusPill.classList.add('following-you');
+        statusPill.innerText = 'Following You';
+      } else {
+        statusPill.classList.remove('following-you');
+        statusPill.classList.add('not-following');
+        statusPill.innerText = 'Not Following You';
+      }
+    }
+
+    function openPopup() {
+      document.getElementById('options-modal').classList.add('active');
+    }
+
+    function hidePopup() {
+      document.getElementById('options-modal').classList.remove('active');
+    }
+
+    function closePopup(e) {
+      if (e.target.id === 'options-modal') {
+        hidePopup();
+      }
+    }
+
+    function openReportSheet() {
+      hidePopup();
+
+      if (isInappropriateReportedLocked) {
+        document.getElementById('report-options-view').style.display = 'none';
+        document.getElementById('report-blank-view').style.display = 'block';
+      } else {
+        document.getElementById('report-options-view').style.display = 'block';
+        document.getElementById('report-blank-view').style.display = 'none';
+      }
+
+      setTimeout(() => {
+        document.getElementById('report-sheet-modal').classList.add('active');
+      }, 150);
+    }
+
+    function hideReportSheet() {
+      document.getElementById('report-sheet-modal').classList.remove('active');
+    }
+
+    function closeReportSheet(e) {
+      if (e.target.id === 'report-sheet-modal') {
+        hideReportSheet();
+      }
+    }
+
+    function triggerSpamReport() {
+      hideReportSheet();
+      showToast("Thanks, we will review this account.");
+    }
+
+    function triggerInappropriateReport() {
+      isInappropriateReportedLocked = true;
+      const optionsView = document.getElementById('report-options-view');
+      const blankView = document.getElementById('report-blank-view');
+
+      optionsView.style.opacity = '0';
+      optionsView.style.transition = 'opacity 0.2s ease';
+
+      setTimeout(() => {
+        optionsView.style.display = 'none';
+        blankView.style.display = 'block';
+        blankView.style.opacity = '0';
+        blankView.style.transition = 'opacity 0.2s ease';
+        setTimeout(() => {
+          blankView.style.opacity = '1';
+        }, 20);
+      }, 200);
+    }
+
+    function openAboutSheet() {
+      hidePopup();
+      const aboutBody = document.getElementById('about-sheet-body');
+      
+      if (isInappropriateReportedLocked) {
+        aboutBody.innerHTML = '<div class="blank-content-msg">Content not available.</div>';
+      }
+
+      setTimeout(() => {
+        document.getElementById('about-sheet-modal').classList.add('active');
+      }, 150);
+    }
+
+    function hideAboutSheet() {
+      document.getElementById('about-sheet-modal').classList.remove('active');
+    }
+
+    function closeAboutSheet(e) {
+      if (e.target.id === 'about-sheet-modal') {
+        hideAboutSheet();
+      }
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('dark-toast');
+      const toastText = document.getElementById('toast-text-msg');
+      const iconWrapper = document.getElementById('toast-icon-wrapper');
+      
+      toastText.innerText = text;
+
+      if (text === "Thanks, we will review this account.") {
+        toast.style.backgroundColor = 'rgba(0, 210, 0, 1)';
+        iconWrapper.innerHTML = `
+          <svg class="toast-icon-green" viewBox="0 0 32 32" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="16" cy="16" r="13.5"/>
+            <polyline points="9.5 16.5 14 21 22.5 11.5"/>
+          </svg>`;
+      } else {
+        toast.style.backgroundColor = '#262626';
+        iconWrapper.innerHTML = `
+          <svg class="toast-icon" viewBox="0 0 32 32" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="16" cy="16" r="13"/>
+            <line x1="16" y1="9" x2="16" y2="17"/>
+            <line x1="16" y1="21.5" x2="16.01" y2="21.5"/>
+          </svg>`;
+      }
+
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 1200);
+    }
+
+    const resultPage = document.getElementById('result-page');
+    const ptrContainer = document.getElementById('ptr-container');
+    const profileBodyWrapper = document.getElementById('profile-body-wrapper');
+    const iosSpinner = document.getElementById('ios-spinner');
+    const spinnerGroup = document.getElementById('spinner-master-group');
+    const blades = spinnerGroup.querySelectorAll('.spinner-blade');
+    const followBtn = document.getElementById('follow-btn');
+
+    const opacityTrailMap = [1.0, 0.80, 0.65, 0.50, 0.35, 0.25, 0.15, 0.10];
+
+    let startTouchY = 0;
+    let pullDist = 0;
+    let isPulling = false;
+    let touchPending = false;
+    let isRefreshing = false;
+    let currentStepIndex = 0;
+    let spinRaf = null;
+    let releaseRaf = null;
+
+    function overlayIsOpen() {
+      return !!document.querySelector('.modal-overlay.active, .sheet-overlay.active');
+    }
+
+    function applyPullBladeProgress(distance) {
+      const threshold = 45;
+      const step = threshold / 8; 
+      const activeCount = Math.min(8, Math.floor(distance / step));
+      
+      blades.forEach((blade, index) => {
+        blade.style.opacity = index < activeCount ? '1.0' : '0.10';
+      });
+
+      iosSpinner.style.opacity = distance > 2 ? String(Math.min(1, distance / 10)) : '0';
+    }
+
+    function applySteppedOpacityTrail(leadIndex) {
+      blades.forEach((blade, index) => {
+        let trailOffset = (leadIndex - index + 8) % 8;
+        blade.style.opacity = opacityTrailMap[trailOffset];
+      });
+    }
+
+    function startContinuousSpinLoop() {
+      if (spinRaf !== null) return;
+      let lastStepTime = performance.now();
+
+      applySteppedOpacityTrail(currentStepIndex);
+
+      function spinStep(now) {
+        if (now - lastStepTime >= 125) {
+          currentStepIndex = (currentStepIndex + 1) % 8;
+          applySteppedOpacityTrail(currentStepIndex);
+          lastStepTime = now;
+        }
+        spinRaf = requestAnimationFrame(spinStep);
+      }
+      spinRaf = requestAnimationFrame(spinStep);
+    }
+
+    function stopFixedRhythmSpin() {
+      if (spinRaf !== null) {
+        cancelAnimationFrame(spinRaf);
+        spinRaf = null;
+      }
+    }
+
+    function stopReleaseAnimation() {
+      if (releaseRaf !== null) {
+        cancelAnimationFrame(releaseRaf);
+        releaseRaf = null;
+      }
+    }
+
+    function completelyResetSpinnerState() {
+      stopReleaseAnimation();
+      stopFixedRhythmSpin();
+
+      ptrContainer.style.transition = 'none';
+      profileBodyWrapper.style.transition = 'none';
+      iosSpinner.style.transition = 'none';
+
+      ptrContainer.style.height = '0px';
+      profileBodyWrapper.style.transform = 'translate3d(0, 0, 0)';
+
+      iosSpinner.style.opacity = '0';
+      iosSpinner.style.transform = 'scale(1)';
+      blades.forEach(blade => blade.style.opacity = '0.10');
+
+      pullDist = 0;
+      currentStepIndex = 0;
+      isRefreshing = false;
+    }
+
+    const x_0 = 15;
+    const screenDim = window.innerHeight || 844;
+    const c = 0.55 * screenDim;
+
+    let currentPos = 0;
+    let currentVel = 0;
+    let lastTouchY = 0;
+    let lastTouchTime = 0;
+    let springRaf = null;
+
+    function computeDisplacement(x) {
+      if (x <= 0) return 0;
+      if (x < x_0) {
+        return x;
+      }
+      return x_0 + c * Math.log(1 + (x - x_0) / c);
+    }
+
+    function setPullPosition(distance) {
+      pullDist = Math.max(0, distance);
+      const threshold = 45;
+
+      profileBodyWrapper.style.transform = `translate3d(0, ${pullDist}px, 0)`;
+      ptrContainer.style.height = `${pullDist}px`;
+
+      if (pullDist >= threshold) {
+        startContinuousSpinLoop();
+      } else {
+        stopFixedRhythmSpin();
+        currentStepIndex = 0;
+        applyPullBladeProgress(pullDist);
+      }
+    }
+
+    function stopSpringAnimation() {
+      if (springRaf !== null) {
+        cancelAnimationFrame(springRaf);
+        springRaf = null;
+      }
+    }
+
+    function animateCriticallyDampedSpring(yTarget, initialVelocity, onComplete) {
+      stopSpringAnimation();
+
+      const omega_n = 18;
+      const y0 = pullDist - yTarget;
+      const v0 = initialVelocity;
+
+      let lastAnimTime = performance.now();
+
+      function stepSpring(now) {
+        const dt = Math.min((now - lastAnimTime) / 1000, 0.032);
+        lastAnimTime = now;
+
+        const C1 = y0;
+        const C2 = v0 + omega_n * y0;
+
+        stepSpring.elapsed = (stepSpring.elapsed || 0) + dt;
+        const t = stepSpring.elapsed;
+
+        const decay = Math.exp(-omega_n * t);
+        const yRel = (C1 + C2 * t) * decay;
+        currentPos = yTarget + yRel;
+        currentVel = (C2 - omega_n * (C1 + C2 * t)) * decay;
+
+        setPullPosition(currentPos);
+
+        if (Math.abs(yRel) < 0.2 && Math.abs(currentVel) < 5) {
+          setPullPosition(yTarget);
+          springRaf = null;
+          if (onComplete) onComplete();
+          return;
+        }
+
+        springRaf = requestAnimationFrame(stepSpring);
+      }
+
+      springRaf = requestAnimationFrame(stepSpring);
+    }
+
+    resultPage.addEventListener('touchstart', (e) => {
+      if (isRefreshing || overlayIsOpen() || e.touches.length !== 1) return;
+
+      startTouchY = e.touches[0].clientY;
+      lastTouchY = startTouchY;
+      lastTouchTime = performance.now();
+      
+      touchPending = true;
+      isPulling = false;
+      currentVel = 0;
+
+      stopSpringAnimation();
+      stopReleaseAnimation();
+      stopFixedRhythmSpin();
+      
+      ptrContainer.style.transition = 'none';
+      profileBodyWrapper.style.transition = 'none';
+    }, { passive: true });
+
+    resultPage.addEventListener('touchmove', (e) => {
+      if (isRefreshing || overlayIsOpen() || e.touches.length !== 1) return;
+
+      const now = performance.now();
+      const currentY = e.touches[0].clientY;
+      const rawFromStart = currentY - startTouchY;
+
+      if (touchPending && Math.abs(rawFromStart) < 6) return;
+      touchPending = false;
+      isPulling = true;
+
+      const dt = (now - lastTouchTime) / 1000;
+      if (dt > 0) {
+        currentVel = (currentY - lastTouchY) / dt;
+      }
+      lastTouchY = currentY;
+      lastTouchTime = now;
+
+      currentPos = computeDisplacement(Math.max(0, rawFromStart));
+      setPullPosition(currentPos);
+
+      if (isInappropriateReportedLocked && !toastInterval) {
+        if (followBtn.classList.contains('user-not-found')) {
+          followBtn.classList.remove('user-not-found');
+          followBtn.innerText = 'Follow';
+        } else {
+          followBtn.classList.add('user-not-found');
+          followBtn.innerText = 'User not found';
+        }
+        showToast('User not found');
+        toastInterval = setInterval(() => {
+          if (isPulling) {
+            if (followBtn.classList.contains('user-not-found')) {
+              followBtn.classList.remove('user-not-found');
+              followBtn.innerText = 'Follow';
+            } else {
+              followBtn.classList.add('user-not-found');
+              followBtn.innerText = 'User not found';
+            }
+            showToast('User not found');
+          }
+        }, 1200);
+      }
+
+      e.preventDefault();
+    }, { passive: false });
+
+    resultPage.addEventListener('touchend', () => {
+      if (isRefreshing) return;
+      if (!isPulling) {
+        touchPending = false;
+        return;
+      }
+
+      touchPending = false;
+      isPulling = false;
+
+      const yThreshold = 45;
+
+      if (pullDist >= yThreshold) {
+        isRefreshing = true;
+
+        animateCriticallyDampedSpring(yThreshold, currentVel, () => {
+          const spinDuration = 800;   
+          const shrinkDuration = 500; 
+          const startTime = performance.now();
+          let lastStepTime = startTime;
+
+          function releaseFrame(now) {
+            const elapsed = now - startTime;
+
+            if (now - lastStepTime >= 125) {
+              currentStepIndex = (currentStepIndex + 1) % 8;
+              applySteppedOpacityTrail(currentStepIndex);
+              lastStepTime = now;
+            }
+
+            if (elapsed < spinDuration) {
+              iosSpinner.style.transform = 'scale(1)';
+              iosSpinner.style.opacity = '1';
+              releaseRaf = requestAnimationFrame(releaseFrame);
+              return;
+            }
+
+            const t = Math.min(1, (elapsed - spinDuration) / shrinkDuration);
+            
+            iosSpinner.style.transform = `scale(${Math.max(0.001, 1 - t)})`;
+            iosSpinner.style.opacity = String(Math.max(0, 1 - t));
+
+            if (t < 1) {
+              releaseRaf = requestAnimationFrame(releaseFrame);
+              return;
+            }
+
+            animateCriticallyDampedSpring(0, 0, () => {
+              completelyResetSpinnerState();
+            });
+          }
+
+          stopFixedRhythmSpin();
+          releaseRaf = requestAnimationFrame(releaseFrame);
+        });
+      } else {
+        stopFixedRhythmSpin();
+        
+        animateCriticallyDampedSpring(0, currentVel, () => {
+          completelyResetSpinnerState();
+        });
+      }
+
+      if (toastInterval) {
+        clearInterval(toastInterval);
+        toastInterval = null;
+      }
+    }, { passive: true });
+
+    resultPage.addEventListener('touchcancel', () => {
+      if (isRefreshing) return;
+      touchPending = false;
+      isPulling = false;
+      if (toastInterval) {
+        clearInterval(toastInterval);
+        toastInterval = null;
+      }
+      completelyResetSpinnerState();
+    }, { passive: true });
+
+    function makeSheetDraggable(sheetId, modalId) {
+      const sheet = document.getElementById(sheetId);
+      const modal = document.getElementById(modalId);
+      let startY = 0;
+      let currentY = 0;
+      let isDragging = false;
+
+      sheet.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+        isDragging = true;
+        sheet.style.transition = 'none';
+      });
+
+      sheet.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        currentY = e.touches[0].clientY - startY;
+        if (currentY > 0) {
+          sheet.style.transform = `translateY(${currentY}px)`;
+        }
+      });
+
+      sheet.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        sheet.style.transition = 'transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1)';
+        if (currentY > 120) {
+          modal.classList.remove('active');
+          setTimeout(() => {
+            sheet.style.transform = '';
+          }, 300);
+        } else {
+          sheet.style.transform = 'translateY(0)';
+        }
+        currentY = 0;
+      });
+    }
+
+    makeSheetDraggable('report-sheet', 'report-sheet-modal');
+    makeSheetDraggable('about-sheet', 'about-sheet-modal');
+  </script>
+</body>
+</html>
